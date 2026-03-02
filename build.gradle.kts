@@ -66,6 +66,24 @@ val shadowImpl: Configuration by configurations.creating {
     configurations.implementation.get().extendsFrom(this)
 }
 
+val neuJar = layout.buildDirectory.file("deps/NEU-v1_8-2.6.0.jar")
+
+val downloadNeu by tasks.registering {
+    val dest = neuJar
+    outputs.file(dest)
+    doLast {
+        val file = dest.get().asFile
+        if (!file.exists()) {
+            file.parentFile.mkdirs()
+            URI("https://github.com/axlecoffee/CoffeeClient/releases/download/1.2.0/NEU-v1_8-2.6.0.jar")
+                .toURL().openStream().use { input ->
+                    file.outputStream().use { output -> input.copyTo(output) }
+                }
+            println("Downloaded NEU JAR -> ${file.absolutePath}")
+        }
+    }
+}
+
 dependencies {
     minecraft("com.mojang:minecraft:1.8.9")
     mappings("de.oceanlabs.mcp:mcp_stable:22-1.8.9")
@@ -76,10 +94,12 @@ dependencies {
     }
     annotationProcessor("org.spongepowered:mixin:0.8.5-SNAPSHOT")
 
-    compileOnly(files("E:\\lunarclientcheats\\NotEnoughUpdates\\build\\libs\\NEU-v1_8-2.6.0.jar"))
+    compileOnly(files(neuJar))
 
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.2.1")
 }
+
+tasks.compileJava { dependsOn(downloadNeu) }
 
 // Tasks:
 
